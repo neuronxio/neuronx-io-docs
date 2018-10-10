@@ -12,10 +12,16 @@
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: '',
-      repo: ''
+      name: 'NeuronX.io - docs',
+      repo: 'https://github.com/neuronxio/neuronx-io-docs'
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+  <script src="//unpkg.com/docsify-edit-on-github@1.0.1/index.js"></script>
+  <script src="//unpkg.com/docsify-copy-code@2"></script>
+
+  <script>
+    EditOnGithubPlugin.create('docs')
+  </script>
 </body>
 </html>
