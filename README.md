@@ -10,5 +10,5 @@ npm i docsify-cli -g
 ## Run:
 
 ```bash
-docsify init ./docs
+docsify serve docs
 ```
