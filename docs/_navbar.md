@@ -1,0 +1,4 @@
+* Translations
+
+  * [🇷🇺 Russian](/)
+  * [🇬🇧 English](/en/)
