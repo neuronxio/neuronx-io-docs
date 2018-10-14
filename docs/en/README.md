@@ -1,91 +1,88 @@
 # Technical instruction
 
-Нейронная сеть NeuronX в текущем моменте своего развития (альфа-версия) обучается и переобучается на датасетах свечей каждые 4 часа (используется LSTM методика в обучении нейросети), а также рассчитывает прогноз каждые 15 минут на предсказуемое движение курса биткоина.
-Общий принцип текущего метода трейдинга при анализе нейросети:
+Neural network NeuronX in the current moment of its development (alpha version) is trained and retrain on data sets of candles every 4:00 (LSTM learning methodology used neural networks), and also calculates the forecast every 15 minutes on the predictable movement course bitcoin. The general principle of current trading method in the analysis of a neural network:
 
-- Каждые 15 минут, на основе анализа свечей, объемов строится линия: default BTC/USDT
-- По верхним и нижним точкам можно построить канал такого движения (верхние максимумы и нижние минимумы – каждые 15 минут)
-- Также учитывается переход свечи (вверх или вниз) за линию медианы
-(средний курс – который определяется на каждый час, с учетом предыдущих максимальных и минимальных значений за предыдущие 4 часа).
-- Выход курса биткоина за границы канала в аналитике NeuronX - интерпретируем, как начало неестественной манипуляции курсом и можем рассматривать такую ситуацию, как сигнал.
-Если цена биткоина на предсказанном значении свечи выходит выше канала (включая тени свечи), то это сигнал покупать. Если ниже – то продавать.
+- Every 15 minutes, on the basis of an analysis of candles, volumes built line: default BTC/USDT
+- On the top and bottom points we construct such traffic channel (highs and lows every 15 minutes)
+- Consider moving the median line candles (The average rate is established on every hour, taking into account previous maximum and minimum values from the previous 4:00).
+- Output currency abroad interprets as the start channel unnatural manipulation of rate and can treat this situation as a signal.
+- If the price of the currency of a predicted, meaning candle goes above the channel (including shadows), then it is a signal to buy. If below-then sell.
 
-![Пример графика](../img/instruction-1.png)
+![Sample graphics](../img/instruction-1.png)
 
 # Artificial neural network
-> Предсказания по свечам делаются с помощью нейронных сетей
+> Predictions on candlesticks made using neural networks
 
-## Анализ свечей
-В системе предсказания поведения биржи мы используем в качестве accuracy такую простую метрику, как угадывание восходящего или нисходящего тренда. Как это работает: берем последовательность из настоящих close и предсказаний, начиная со 2 элемента сравниваем его с предыдущим, если он больше - ставим 1, если меньше, то ставим 0 и таким образом создаем эталонный бинарный вектор, то же самое делаем с предсказаниями (сравниваем предсказание с предыдущим настоящим значением). Теперь у нас есть 2 бинарных вектора, эталонный и предсказания и мы, используя функцию из [библиотеки](http://sklearn.metrics.accuracy_score) подсчитываем точность угадывания тренда нашего алгоритма. В качестве исходных данных мы используем 15-минутные свечи с нашего бэкенда, где данные уже обработаны. Датасет представляет ~32 тысячи свечей, отсортированных по времени, среди которых последние 5% отдаются на тест (модель никогда их не видела в обучающей выборке) и оценка качества модели проводится на этих примерах. Последняя разработанная модель показала порядка 76% точности в угадывании тренда. Для демонстрации достоверности результатов приложен фрагмент кода.
+## Analysis candles
+The system of predicting the behavior of Exchange we use as "accuracy" such a simple metric like guessing the upward or downward trend. How it works: take the sequence of these close and predictions, starting with 2 compare it with the previous item, if it is more-put 1, if less then put 0 and thus create a reference binary vector, do the same with predictions (compare with the previous prediction of present value). Now we have 2 binary vectors, reference and predictions and we are using a function from the [Library](http://sklearn.metrics.accuracy_score) count the precision trend guessing our algorithm. As input we use 15-minute candles with our backend, where data is already processed. The dataset is ~ 38 thousands of candles, sorted by time, among which are the last 5% is given on the test (model never saw in the learning sample) and model quality evaluation shall be carried out on these examples.
 
-![Рис.1 Пример кода для подсчета точности](../img/ai-1.png)
-Рис.1 Пример кода для подсчета точности
+![Fig. 1 example code for counting accuracy](../img/ai-1.png)
+Fig. 1 example code for counting accuracy
 
-На графике ниже приведен пример работы системы, зеленая линия - график close, красные точки - предсказания системы ( предсказывает сразу 3 15-минутные свечи вперед, поэтому несколько точек по вертикали может быть так как со смещением добавляется еще одно предсказание на каждую точку), красными линиями построены коридоры разброса предсказанных значений.
+The graph below shows an example of operation of the system, the green line - graph close, red dots-prediction system (predicts immediately 3 15-minute candles forward, so few pixels vertically may be because the offset is added to another prediction for each point), red lines built corridors spreading of predicted values.
 
-![Рис.2 Пример работы системы на отрезке в тестовом датасете](../img/ai-2.png)
-Рис.2 Пример работы системы на отрезке в тестовом датасете
+![Fig. 2 examples of a test the system after](../img/ai-2.png)
+Fig. 2 examples of a test the system after
 
-## Новостной медиапоток
-Наша команда проводит исследование и анализ медиапотока новостей и иных  социальных данных для будущего предсказания поведения рынка на этой основе или понимания прошлого. В отделе R&D на текущий момент из текста извлекаются такие важные признаки как:
-
-
-- тональность (sentiment) текста (положительный, нейтральный или негативный)
-
-- оценка значимости (частотный алгоритм) новости в рамках всех других новостей
-
-- коэффициент распределения времени (будущее / прошлое / настоящее, суммарно равен единице)
-
-- NER (Named Entity Recognition) - для распознавания организаций, персон, локаций, а также их подсвечивание в тексте для большего удобства пользователя
-
-![Рис.3 Пример использования NER в новостной ленте](../img/ai-3.png)
-Рис.3 Пример использования NER в новостной ленте
-
-В то же время разрабатывается алгоритм для детекции fake news:
+## News media stream
+Our team conducts research and analysis of media stream of news and other social data to predict future market behavior on this basis or understanding of the past. In the Department of R&D at the moment from the text are extracted such important traits as:
 
 
-- анализируем связь заголовка и текста
+- Tone (sentiment) text (positive, neutral, or negative).
 
-- изучаем первоисточники
+- Valuing (frequency algorithm) news in all the other news.
 
-- исследуем это явление в целом, всплески фейковых новостей в прошлом и их природу
+- Distribution coefficient of time (future/past/present, cumulatively equal to the unit).
 
-- разрабатываем концепции на основе результатов исследования
+- NER (Named Entity Recognition) - to recognize organizations, persons, locations, as well as their highlighting in the text for greater convenience
 
-- проводим синтетическое тестирование
+![Fig. 3 example usage of NER in the news feed](../img/ai-3.png)
+Fig. 3 example usage of NER in the news feed
 
-- изучаем результаты в онлайн режиме
-
-
-Предлагаем к рассмотрению такой пример, сравним агрегацию параметра positive sentiment и Close в рамках дневных свечей. Замечено, что подъемы positive sentiment сопровождаются подъемами Close через некий промежуток времени ( или даже одновременно), это говорит о том, что мы идем в верном направлении и модель, основанная на пунктах выше имеет место быть и станет очень полезным и мощным инструментом.
+At the same time, developed an algorithm to detect fake news:
 
 
-Зеленая разметка - характеризует подъемы, черная - падения. Синий график -close, красный - позитивная тональность новостей.
+- Analyze the header link and text.
 
-![Рис.4 Связь позитивных новостей и поведения рынка](../img/ai-4.png)
+- Study the primary sources.
+
+- Explore this phenomenon as a whole, the news in the past fake bursts and their nature.
+
+- Design concept on the basis of the results of the study.
+
+- Conduct synthetic testing.
+
+- Study results in online mode
+
+
+Offer to consider such an example, compare the aggregation parameter positive sentiment and Close within a day of the candles. I've noticed that the positive sentiment rises accompanied by rises Close through some period of time (or even simultaneously), this suggests that we are moving in the right direction and a model based on the above paragraphs is the place to be and will be very useful and a powerful tool.
+
+
+Green markings-characterizes rises, black-the fall. Blue graphic close, red-positive tone of news.
+
+![Fig. 4 Connection of positive news and market behavior](../img/ai-4.png)
 
 
 # INDICATORS
 
-> Для определения важных сигналов мы используем различные индикаторы
+> To determine the important signals, we use various indicators
 
-## Свечные индикаторы
-> Предсказания нейронной сети точны на 70%, индикаторы улучшают этот показатель определяя лучшее время для входа и выхода в рынок
+## Candlestick indicators
+> Neural network predictions accurate to 70%, indicators improve this figure when determining the best time to enter and exit the market.
 
-### Cкорость изменения объема
-По каждой валютной паре мы измеряем **Скорость изменения объема**, если она выходит за рамки среднестатистической скорости то мы считаем это сигналом
+### Volume change speed
+For each currency pair we measure **Volume change speed** when it goes beyond the average speed we believe this signal.
 
-## Биржевой стакан
-### Индикатор равенства объемов
-- Складываем объемы ask и bid
-- Выбираем меньшее число суммы объемов, к примеру у ask сумма 3000, у bid 2000 (и последний ордер в стакане по цене 6550)
-- Проводим еще одно сложение пока сумма ask будет максимально близка к цене 6550. там где остановится сложение находится цена равновесная объему
-- Пишем эту цену в табличку, плюс измеряем % изменения от предидущего, остальные параметры тоже записываем
-- Также соотношение "цены равенства объемов" нам показывает насколько рынок находится в балансе/диссбалансе. Это изменение надо тоже записывать
+## Depth of Market 
+### Equality indicator volume
+- Put the volume of ask and bid.
+- Choose the fewer amount of volumes, for example, ask have the sum of 3000, 2000 bid (and last order in a glass costs 6550).
+- Spend another addition will ask sum as close to price 6550. where will stop the addition is price equilibrium volume.
+- Write it on a plate, plus measure % change from the previous, other parameters to write
+- Also the ratio of the prices of equity volumes "shows us how the market is in balance/dissbalanse. This change should also record.
 
-### Индикатор магнитных линий
-Зная усредненный объем сделок по предидущим минутным свечам, мы можем строить прогнозы по биржевому стакану:
-Где окажется цена через минуту если купят этот средний объем, 2 средних объема, 3 и т.д."
+### Magnetic indicator lines
+Knowing the average volume of deals on last minute 3, we can build forecasts at depth of the market: Where will prove to be the price in a minute if you buy this average volume, average volume 2, 3, etc. "
 
 
 # API
